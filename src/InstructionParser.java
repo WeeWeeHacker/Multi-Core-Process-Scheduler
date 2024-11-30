@@ -17,7 +17,7 @@ public class InstructionParser {
         while (scanner.hasNextLine()) {
             String[] program = scanner.nextLine().split(";");
             List<String> instructions = Arrays.asList(program);
-            processes.add(new Process(instructions, new int[] { 0, 100 })); //logic issue
+            processes.add(Process.createProcess(processID++,instructions,0, new int[] { 0, 100 })); //logic issue
         }
         scanner.close();
         return processes;

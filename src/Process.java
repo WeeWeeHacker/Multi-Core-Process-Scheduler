@@ -1,16 +1,32 @@
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Process {
-private int processID = 1;
+private static final Set<Integer> existingProcessIDs = new HashSet<>();
+private final int processID ;
 private List<String> instructions;
 private int programCounter;
 private int  memoryBounds [];
 
-    public Process(List<String> instructions,int programCounter, int[] memoryBounds) {
-        this.processID = processID++;
+    private Process(int processID,List<String> instructions,int programCounter, int[] memoryBounds) {
+        this.processID = processID;
         this.instructions = instructions;
         this.programCounter = programCounter;
         this.memoryBounds = memoryBounds;
+    }
+    public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds) {
+        int newProcessID = processID;
+
+
+        while (existingProcessIDs.contains(newProcessID)) {
+            newProcessID++;
+        }
+
+        existingProcessIDs.add(newProcessID);
+
+
+        return new Process(newProcessID, instructions, programCounter, memoryBounds);
     }
     public int getProcessID() {
         return processID;
@@ -42,5 +58,10 @@ private int  memoryBounds [];
 
     public boolean isComplete() {
         return programCounter >= instructions.size();
+    }
+
+    public static void main(String[] args) {
+        Process a = new Process(1,null,0,null);
+        Process b = new Process(1,null,0,null);
     }
 }

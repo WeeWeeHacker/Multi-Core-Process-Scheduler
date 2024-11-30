@@ -24,7 +24,7 @@ public class SlaveCore {
         busy = true;
         this.currentProcess = process;
         System.out.println("Slave " + coreID + " executing process " + process.getProcessID());
-        while (process.hasNextInstruction()) {
+        while (process!=null) {
             String instruction = process.getNextInstruction();
             System.out.println("Executing instruction: " + instruction);
         }
