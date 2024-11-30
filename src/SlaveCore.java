@@ -12,7 +12,6 @@ public class SlaveCore {
         this.busy = false;
     }
 
-
     public int getCoreID() {
         return coreID;
     }
