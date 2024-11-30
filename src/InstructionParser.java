@@ -5,7 +5,6 @@ public class InstructionParser {
 
     private File inputFile;
 
-
     public InstructionParser(File inputFile) {
         this.inputFile = inputFile;
     }
@@ -14,12 +13,11 @@ public class InstructionParser {
     public List<Process> parseInstructions() throws IOException {
         List<Process> processes = new ArrayList<>();
         Scanner scanner = new Scanner(inputFile);
-        int processID = 1;
-
+        int processID = 1; //?????
         while (scanner.hasNextLine()) {
             String[] program = scanner.nextLine().split(";");
             List<String> instructions = Arrays.asList(program);
-            processes.add(new Process(processID++, instructions, new int[] { 0, 100 }));
+            processes.add(new Process(instructions, new int[] { 0, 100 })); //logic issue
         }
         scanner.close();
         return processes;
