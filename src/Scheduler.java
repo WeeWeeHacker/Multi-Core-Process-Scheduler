@@ -7,7 +7,7 @@ class Scheduler {
 
     public Scheduler(List<Process> processes, String Algorithm ) {
         this.processQueue = new LinkedList<>(processes); //?Process list probably belongs in master-core?
-        this.Algorithm = Algorithm;
+        setAlgorithm(Algorithm);
     }
     public Scheduler(List<Process> processes) {
         this.processQueue = new LinkedList<>(processes); //?Process list probably belongs in master-core?
