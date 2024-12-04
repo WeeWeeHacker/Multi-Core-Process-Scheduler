@@ -9,7 +9,7 @@ class Scheduler {
         this.processQueue = new LinkedList<>(processes);
     }
 
-    //?Master-core uses
+    //?Master-core uses after creating schedule?
     public void addProcess(Process process) {
         processQueue.offer(process);
     }
@@ -20,7 +20,7 @@ class Scheduler {
             return null; //No processes left to schedule
         }
 
-        //Sorts procs according to burst-time; gets the shortest
+        //Sorts processes according to burst-time; gets the shortest
         List<Process> processList = new ArrayList<>(processQueue);
         processList.sort(Comparator.comparingInt(Process::getBurstTime));
         Process currentProcess = processList.getFirst();
