@@ -16,6 +16,7 @@ private int  memoryBounds [];
         this.instructions = instructions;
         this.programCounter = programCounter;
         this.memoryBounds = memoryBounds;
+        this.BurstTime = BurstTime;
     }
     public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds,int burstTime) {
         int newProcessID = processID;
