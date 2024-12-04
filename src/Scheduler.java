@@ -2,53 +2,43 @@ import java.util.*;
 
 class Scheduler {
     private Queue<Process> processQueue;
-    private static final int quantum = 2;
-    private String Algorithm; //set Algorithm type e.g., Round Robin, SJF
+    private static final int quantum = 2; // Quantum for Round Robin
 
-    public Scheduler(List<Process> processes, String Algorithm ) {
-        this.processQueue = new LinkedList<>(processes); //?Process list probably belongs in master-core?
-        setAlgorithm(Algorithm);
-    }
+    // Constructor for Hybrid SJF with Round Robin
     public Scheduler(List<Process> processes) {
-        this.processQueue = new LinkedList<>(processes); //?Process list probably belongs in master-core?
+        this.processQueue = new LinkedList<>(processes);
     }
 
-    public void setAlgorithm(String Algorithm){
-        if (Algorithm.equals("Round Robin")||Algorithm.equals("SJF")){
-            this.Algorithm = Algorithm;
-        }
+    //?Master-core uses
+    public void addProcess(Process process) {
+        processQueue.offer(process);
     }
 
-    public void addProcess(Process Process){
-        processQueue.offer(Process);
-    }
-
-    public Process scheduleNext()  { // (issue)
+    public Process scheduleNext() {
         if (processQueue.isEmpty()) {
-            System.out.println("All Process has been finished");
-            return null;// No processes left to schedule
+            System.out.println("All processes have been finished");
+            return null; //No processes left to schedule
         }
 
-        Process currentProcess = processQueue.poll();
-        if (Algorithm.equals("Round Robin")) {
-            for (int i = 0; i < quantum; i++) {
-                if (!currentProcess.isComplete()) {
-                    String instruction = currentProcess.getNextInstruction();
-                    System.out.println("Executing instruction: " + instruction + " from Process ID: " + currentProcess.getProcessID());
-                } else {
-                    break;
-                }
-            }
+        //Sorts procs according to burst-time; gets the shortest
+        List<Process> processList = new ArrayList<>(processQueue);
+        processList.sort(Comparator.comparingInt(Process::getBurstTime));
+        Process currentProcess = processList.getFirst();
+        processQueue = new LinkedList<>(processList);
+        //process execution
+        for (int i = 0; i < quantum; i++) {
             if (!currentProcess.isComplete()) {
-                processQueue.offer(currentProcess); // Re-add the process if it's not complete
+                String instruction = currentProcess.getNextInstruction();
+                System.out.println("Executing instruction: " + instruction + " from Process ID: " + currentProcess.getProcessID());
+            } else {
+                break; //If process is complete, stop execution
             }
         }
-        if (Algorithm.equals("SJF")){
-            // !!!!!!!-------------------- Write the SJF Algorithm -------------------------!!!!!!
+        //If not complete, re-add to queue
+        if (!currentProcess.isComplete()) {
+            processQueue.offer(currentProcess);
         }
-        else {
-            System.out.println("The Algorithm for this Scheduler has not been yet set");
-        }
+
         return currentProcess;
     }
 
