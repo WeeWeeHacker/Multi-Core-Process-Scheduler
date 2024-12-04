@@ -45,7 +45,13 @@ private int  memoryBounds [];
         return memoryBounds;
     }
 
+    public int getBurstTime() {
+        return BurstTime;
+    }
 
+    public void setBurstTime(int burstTime) {
+        BurstTime = burstTime;
+    }
 
     public String getNextInstruction() {
         if (programCounter < instructions.size()) {
