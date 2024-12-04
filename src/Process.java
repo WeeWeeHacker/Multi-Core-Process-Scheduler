@@ -1,6 +1,7 @@
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public class Process {
 private static final Set<Integer> existingProcessIDs = new HashSet<>();
@@ -49,8 +50,11 @@ private int  memoryBounds [];
         return BurstTime;
     }
 
-    public void setBurstTime(int burstTime) {
-        BurstTime = burstTime;
+    public void decBurstTime(int burstTime) { //to decrease burst time of process
+        if (BurstTime-burstTime>0)
+        BurstTime -= burstTime;
+        else
+            System.out.println("Recheck please the scheduling Algorithm"); // Edge case check might remove in the final commits
     }
 
     public String getNextInstruction() {
