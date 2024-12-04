@@ -6,16 +6,17 @@ public class Process {
 private static final Set<Integer> existingProcessIDs = new HashSet<>();
 private final int processID ;
 private List<String> instructions;
+private int BurstTime;
 private int programCounter;
 private int  memoryBounds [];
 
-    private Process(int processID,List<String> instructions,int programCounter, int[] memoryBounds) {
+    private Process(int processID,List<String> instructions,int programCounter, int[] memoryBounds,int BurstTime ) {
         this.processID = processID;
         this.instructions = instructions;
         this.programCounter = programCounter;
         this.memoryBounds = memoryBounds;
     }
-    public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds) {
+    public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds,int burstTime) {
         int newProcessID = processID;
 
 
@@ -26,7 +27,7 @@ private int  memoryBounds [];
         existingProcessIDs.add(newProcessID);
 
 
-        return new Process(newProcessID, instructions, programCounter, memoryBounds);
+        return new Process(newProcessID, instructions, programCounter, memoryBounds,burstTime);
     }
     public int getProcessID() {
         return processID;
@@ -44,6 +45,8 @@ private int  memoryBounds [];
         return memoryBounds;
     }
 
+
+
     public String getNextInstruction() {
         if (programCounter < instructions.size()) {
             return instructions.get(programCounter++);
@@ -58,10 +61,5 @@ private int  memoryBounds [];
 
     public boolean isComplete() {
         return programCounter >= instructions.size();
-    }
-
-    public static void main(String[] args) {
-        Process a = new Process(1,null,0,null);
-        Process b = new Process(1,null,0,null);
     }
 }
