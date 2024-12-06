@@ -21,15 +21,23 @@ private int  memoryBounds [];
     public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds,int burstTime) {
         int newProcessID = processID;
 
-
         while (existingProcessIDs.contains(newProcessID)) {
             newProcessID++;
         }
 
         existingProcessIDs.add(newProcessID);
 
-
         return new Process(newProcessID, instructions, programCounter, memoryBounds,burstTime);
+    }
+
+    public void decreaseBurstTime(int n){
+        if ( n > BurstTime ){
+            BurstTime = 0;
+        }
+        else {
+            BurstTime -= n;
+        }
+
     }
     public int getProcessID() {
         return processID;
@@ -51,12 +59,6 @@ private int  memoryBounds [];
         return BurstTime;
     }
 
-    public void decBurstTime(int burstTime) { //to decrease burst time of process
-        if (BurstTime-burstTime>0)
-        BurstTime -= burstTime;
-        else
-            System.out.println("Recheck please the scheduling Algorithm"); // Edge case check might remove in the final commits
-    }
 
     public String getNextInstruction() {
         if (programCounter < instructions.size()) {

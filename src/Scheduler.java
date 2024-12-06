@@ -64,13 +64,4 @@ class Scheduler {
         executorService.scheduleAtFixedRate(scheduleTask, 0, 1, TimeUnit.SECONDS);
     }
 
-    public static void main(String[] args) {
-        // Create processes with their respective burst times
-        Process process1 = Process.createProcess(1, Arrays.asList("Instruction1", "Instruction2", "Instruction3"), 5);
-        Process process2 = Process.createProcess(2, Arrays.asList("InstructionA", "InstructionB"), 2);
-        Process process3 = Process.createProcess(3, Arrays.asList("Op1", "Op2", "Op3", "Op4"), 8);
-
-        Scheduler scheduler = new Scheduler(Arrays.asList(process1, process2, process3));
-        scheduler.startScheduling();
-    }
 }
