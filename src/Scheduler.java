@@ -1,63 +1,76 @@
 import java.util.*;
+import java.util.concurrent.*;
 
 class Scheduler {
+    private List<Process> processList;
     private Queue<Process> processQueue;
-    private static final int quantum = 2; // Quantum for Round Robin
+    private static final int QUANTUM = 2; // Time slice for Round Robin
+    private ScheduledExecutorService executorService;
 
-    // Constructor for Hybrid SJF with Round Robin
     public Scheduler(List<Process> processes) {
-        this.processQueue = new LinkedList<>(processes);
+        // Initialize the process list and the queue, sorted by burst time
+        this.processList = new ArrayList<>(processes);
+        this.processQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getBurstTime));
+        this.processQueue.addAll(processes);
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     }
 
-    //?Master-core uses after creating schedule?
-    public void addProcess(Process process) {
-        processQueue.offer(process);
-    }
+    public void startScheduling() {
+        Runnable scheduleTask = () -> {
+            if (!processQueue.isEmpty()) {
+                // Sort the queue based on burst time to simulate SJF behavior
+                List<Process> sortedQueue = new ArrayList<>(processQueue);
+                sortedQueue.sort(Comparator.comparingInt(Process::getBurstTime));
+                processQueue = new PriorityQueue<>(sortedQueue);
 
-    public Process scheduleNext() {
-        if (processQueue.isEmpty()) {
-            System.out.println("All processes have been finished");
-            return null; //No processes left to schedule
-        }
+                // Extract the process with the shortest burst time
+                Process currentProcess = processQueue.poll();
+                if (currentProcess != null) {
+                    System.out.println("Currently executing Process ID: " + currentProcess.getProcessID());
 
-        //Sorts processes according to burst-time; gets the shortest
-        List<Process> processList = new ArrayList<>(processQueue);
-        processList.sort(Comparator.comparingInt(Process::getBurstTime));
-        Process currentProcess = processList.getFirst();
-        processQueue = new LinkedList<>(processList);
-        //process execution
-        for (int i = 0; i < quantum; i++) {
-            if (!currentProcess.isComplete()) {
-                String instruction = currentProcess.getNextInstruction();
-                System.out.println("Executing instruction: " + instruction + " from Process ID: " + currentProcess.getProcessID());
+                    // Execute up to the quantum (2 clock cycles)
+                    for (int i = 0; i < QUANTUM; i++) {
+                        if (!currentProcess.isComplete()) {
+                            String instruction = currentProcess.getNextInstruction();
+                            if (instruction != null) {
+                                System.out.println("Executing instruction: " + instruction + " from Process ID: " + currentProcess.getProcessID());
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // Decrease the burst time after execution
+                    currentProcess.decreaseBurstTime(2);
+
+                    // If the process is still not complete, add it back to the queue
+                    if (!currentProcess.isComplete() && currentProcess.getBurstTime() > 0) {
+                        processQueue.offer(currentProcess);
+                    } else {
+                        // Print completion message for the current process
+                        System.out.println("Process ID: " + currentProcess.getProcessID() + " completed.");
+                    }
+                }
             } else {
-                break; //If process is complete, stop execution
+                // Shutdown the executor when all processes are complete
+                executorService.shutdown();
+                System.out.println("All processes completed.");
             }
-        }
-        //If not complete, re-add to queue
-        if (!currentProcess.isComplete()) {
-            processQueue.offer(currentProcess);
-        }
+        };
 
-        return currentProcess;
+        // Schedule the task to run every second (or adjust as needed for clock cycle)
+        executorService.scheduleAtFixedRate(scheduleTask, 0, 1, TimeUnit.SECONDS);
     }
 
-    public boolean hasPendingProcesses() {
-        return !processQueue.isEmpty();
-    }
-
-    //*Test Code
-    /*
     public static void main(String[] args) {
-        Process process1 = Process.createProcess(1, Arrays.asList("Instruction1", "Instruction2", "Instruction3"), 0, new int[]{0, 100});
-        Process process2 = Process.createProcess(2, Arrays.asList("InstructionA", "InstructionB"), 0, new int[]{101, 200});
-        Process process3 = Process.createProcess(3, Arrays.asList("Op1", "Op2", "Op3", "Op4"), 0, new int[]{201, 300});
+        // Create processes with their respective burst times
+        Process process1 = Process.createProcess(1, Arrays.asList("Instruction1", "Instruction2", "Instruction3"), 5);
+        Process process2 = Process.createProcess(2, Arrays.asList("InstructionA", "InstructionB"), 2);
+        Process process3 = Process.createProcess(3, Arrays.asList("Op1", "Op2", "Op3", "Op4"), 8);
 
         Scheduler scheduler = new Scheduler(Arrays.asList(process1, process2, process3));
-
-        while (scheduler.hasPendingProcesses()) {
-            scheduler.scheduleNext();
-        }
+        scheduler.startScheduling();
     }
-    */
 }
