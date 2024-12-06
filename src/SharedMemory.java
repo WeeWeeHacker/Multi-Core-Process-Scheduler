@@ -3,11 +3,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SharedMemory {
     private ConcurrentHashMap<String, Object> memoryMap;
 
-
     public SharedMemory() {
         memoryMap = new ConcurrentHashMap<>();
     }
-
 
     public synchronized Object readVariable(String name) {
         return memoryMap.getOrDefault(name, null);

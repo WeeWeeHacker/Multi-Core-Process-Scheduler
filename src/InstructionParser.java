@@ -3,31 +3,42 @@ import java.io.*;
 
 public class InstructionParser {
 
-    private File inputFile;
+    private final File inputFile;
 
     public InstructionParser(File inputFile) {
         this.inputFile = inputFile;
     }
 
-
     public List<Process> parseInstructions() throws IOException {
         List<Process> processes = new ArrayList<>();
-        Scanner scanner = new Scanner(inputFile);
-        int processID = 1; //?????
-        while (scanner.hasNextLine()) {
-            String[] program = scanner.nextLine().split(";");
-            List<String> instructions = Arrays.asList(program);
-            processes.add(Process.createProcess(processID++,instructions,0, new int[] { 0, 100 })); //logic issue
+        try (Scanner scanner = new Scanner(inputFile)) {
+            int processID = 1;
+            int memoryStart = 0;
+            int memorySize = 100;
+
+            while (scanner.hasNextLine()) {
+                String[] program = scanner.nextLine().split(";");
+                List<String> instructions = Arrays.asList(program);
+                int burstTime = calculateBurstTime(instructions);
+                int[] memoryBounds = {memoryStart, memoryStart + memorySize - 1};
+                memoryStart += memorySize;
+                processes.add(Process.createProcess(processID++, instructions, 0, memoryBounds, burstTime));
+            }
         }
-        scanner.close();
         return processes;
     }
 
+    private int calculateBurstTime(List<String> instructions) {
+
+        return instructions.size() * 10;
+    }
+
     public String categorizeInstruction(String instruction) {
+        if (instruction == null || instruction.isBlank()) return "Unknown";
         if (instruction.startsWith("assign")) return "Assignment";
         if (instruction.startsWith("print")) return "Print";
-        if (instruction.startsWith("add") || instruction.startsWith("subtract") ||
-                instruction.startsWith("multiply") || instruction.startsWith("divide")) return "Arithmetic Operation";
+        if (instruction.matches("^(add|subtract|multiply|divide).*")) return "Arithmetic Operation";
         return "Unknown";
     }
 }
+

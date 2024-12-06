@@ -18,25 +18,21 @@ private int  memoryBounds [];
         this.memoryBounds = memoryBounds;
         this.BurstTime = BurstTime;
     }
-    public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds,int burstTime) {
-        int newProcessID = processID;
+    public static Process createProcess(int processID, List<String> instructions, int programCounter, int[] memoryBounds, int burstTime) {
 
-        while (existingProcessIDs.contains(newProcessID)) {
-            newProcessID++;
+        if (memoryBounds == null || memoryBounds.length != 2 || memoryBounds[0] >= memoryBounds[1]) {
+            throw new IllegalArgumentException("Invalid memory bounds");
         }
+        while (existingProcessIDs.contains(processID)) {
+            processID++;
+        }
+        existingProcessIDs.add(processID);
 
-        existingProcessIDs.add(newProcessID);
-
-        return new Process(newProcessID, instructions, programCounter, memoryBounds,burstTime);
+        return new Process(processID, instructions, programCounter, memoryBounds, burstTime);
     }
 
     public void decreaseBurstTime(int n){
-        if ( n > BurstTime ){
-            BurstTime = 0;
-        }
-        else {
-            BurstTime -= n;
-        }
+        BurstTime = Math.max(0,getBurstTime()-n);
 
     }
     public int getProcessID() {
