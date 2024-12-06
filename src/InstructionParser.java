@@ -29,8 +29,8 @@ public class InstructionParser {
     }
 
     private int calculateBurstTime(List<String> instructions) {
-
         return instructions.size() * 10;
+
     }
 
     public String categorizeInstruction(String instruction) {
