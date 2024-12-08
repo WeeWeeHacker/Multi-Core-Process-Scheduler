@@ -2,29 +2,29 @@
 import java.util.List;
 
 public class ExecutionLogger {
-    private List<String> log;
+    private List<String> logs;
 
     public ExecutionLogger() {
-        log = new ArrayList<>();
+        logs = new ArrayList<>();
     }
 
 
-    public void logStatus(String status) {
-        log.add(status);
+    public void AddLog(String status) {
+        logs.add(status);
     }
 
     public void printLogs() {
-        if (log.isEmpty()) {
+        if (logs.isEmpty()) {
             System.out.println("There are no logs.");
         } else {
             System.out.println("Execution Logs: ");
-            for (int i = 0;i<log.size(); i++) {
-                System.out.println(log.get(i));
+            for (String log : logs) {
+                System.out.println(log);
             }
         }
     }
 
-    public List<String> getLog() {
-        return log;
+    public List<String> getLogs() {
+        return logs;
     }
 }

@@ -16,7 +16,19 @@ public class SlaveCore {
         this.busy = false;
     }
 
-    public SlaveCore createSlaveCore(int coreID, SharedMemory sharedMemory){
+    /*
+    * Changed createSlaveCore to static due to nullptr exception when initializing slaveCores in masterCore
+    !Alternate slaveCore implementation:
+    *   - @Param: private static int coreCounter = 0;
+    *   - @Param: private final int coreID;
+    *   - @Constructor: public SlaveCore(SharedMemory sharedMemory){
+    *       this.sharedMemory = sharedMemory;
+    *       this.busy = false;
+    *       this.coreID = ++coreCounter;
+    *   }
+    *   - Removes the need for createSlaveCore
+     */
+    public static SlaveCore createSlaveCore(int coreID, SharedMemory sharedMemory){
         while (existingcoreIDs.contains(coreID)) {
             coreID++;
         }

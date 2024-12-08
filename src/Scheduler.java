@@ -61,7 +61,7 @@ class Scheduler {
         };
 
         // Schedule the task to run every second (or adjust as needed for clock cycle)
-        executorService.scheduleAtFixedRate(scheduleTask, 0, 1, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(scheduleTask, 0, 2, TimeUnit.MILLISECONDS);
     }
 
 }
