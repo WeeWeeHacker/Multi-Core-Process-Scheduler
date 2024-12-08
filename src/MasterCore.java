@@ -1,3 +1,4 @@
+//!!!!!Master Core recognizes text files and initializes cores, but processess aren't assigned properly to cores!!!!!
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
