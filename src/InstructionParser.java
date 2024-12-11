@@ -17,8 +17,13 @@ public class InstructionParser {
             int memorySize = 100;
 
             while (scanner.hasNextLine()) {
-                String[] program = scanner.nextLine().split(";");
-                List<String> instructions = Arrays.asList(program);
+                List<String> instructions = new ArrayList<>();
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine().trim();
+                    if (!line.isEmpty()) {
+                        instructions.add(line);
+                    }
+                }
                 int burstTime = calculateBurstTime(instructions);
                 int[] memoryBounds = {memoryStart, memoryStart + memorySize - 1};
                 memoryStart += memorySize;
@@ -30,7 +35,6 @@ public class InstructionParser {
 
     private int calculateBurstTime(List<String> instructions) {
         return instructions.size() * 10;
-
     }
 
     public String categorizeInstruction(String instruction) {
@@ -41,4 +45,3 @@ public class InstructionParser {
         return "Unknown";
     }
 }
-

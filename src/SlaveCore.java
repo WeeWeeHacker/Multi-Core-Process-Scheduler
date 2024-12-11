@@ -1,41 +1,20 @@
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SlaveCore {
-    private static final Set<Integer> existingcoreIDs = new HashSet<>();
     private final int coreID;
     private Process currentProcess;
     private final SharedMemory sharedMemory;
     private boolean busy;
+    private final ExecutorService executor;
 
-   private SlaveCore(int coreID, SharedMemory sharedMemory) {
+    public SlaveCore(int coreID, SharedMemory sharedMemory) {
         this.coreID = coreID;
         this.sharedMemory = sharedMemory;
         this.busy = false;
-    }
-
-    /*
-    * Changed createSlaveCore to static due to nullptr exception when initializing slaveCores in masterCore
-    !Alternate slaveCore implementation:
-    *   - @Param: private static int coreCounter = 0;
-    *   - @Param: private final int coreID;
-    *   - @Constructor: public SlaveCore(SharedMemory sharedMemory){
-    *       this.sharedMemory = sharedMemory;
-    *       this.busy = false;
-    *       this.coreID = ++coreCounter;
-    *   }
-    *   - Removes the need for createSlaveCore
-     */
-    public static SlaveCore createSlaveCore(int coreID, SharedMemory sharedMemory){
-        while (existingcoreIDs.contains(coreID)) {
-            coreID++;
-        }
-        existingcoreIDs.add(coreID);
-
-        return new SlaveCore(coreID,sharedMemory);
-
+        this.executor = Executors.newSingleThreadExecutor();
     }
 
     public int getCoreID() {
@@ -46,33 +25,37 @@ public class SlaveCore {
         return busy;
     }
 
-    public void executeProcess(Process process) {
+    public void executeProcess(Process process, Runnable onComplete) {
         if (process == null) {
-            System.out.println("No process to execute on Slave " + coreID);
+            System.out.println("No process to execute.");
             return;
         }
 
         busy = true;
-        this.currentProcess = process;
 
-        System.out.println("Slave " + coreID + " started executing process " + process.getProcessID());
+        // Start a new thread for asynchronous execution
+        new Thread(() -> {
+            try {
+                System.out.println("Slave " + coreID + " started executing process " + process.getProcessID());
 
-        while (!process.isComplete()) {
-            String instruction = process.getNextInstruction();
-            if (instruction != null) {
-                System.out.println("Executing instruction: " + instruction);
-                executeInstruction(instruction);
-            } else {
-                System.out.println("Instruction is null. Skipping...");
+                while (!process.isComplete()) {
+                    String instruction = process.getNextInstruction();
+                    if (instruction != null) {
+                        System.out.println("Slave " + coreID + " executing instruction: " + instruction);
+                        executeInstruction(instruction); // Log instruction execution
+                    }
+                }
+
+                System.out.println("Slave " + coreID + " completed process " + process.getProcessID());
+            } finally {
+                busy = false;
+                if (onComplete != null) {
+                    onComplete.run(); // Callback for notifying completion
+                }
             }
-        }
-
-        System.out.println("Slave " + coreID + " completed process " + process.getProcessID());
-
-        // Mark the core as free
-        this.currentProcess = null;
-        busy = false;
+        }).start();
     }
+
 
     private void executeInstruction(String instruction) {
         String category = categorizeInstruction(instruction);
@@ -95,10 +78,10 @@ public class SlaveCore {
     private String categorizeInstruction(String instruction) {
         if (instruction.startsWith("assign")) return "Assignment";
         if (instruction.startsWith("print")) return "Print";
-        if (instruction.startsWith("add") || instruction.startsWith("subtract") ||
-                instruction.startsWith("multiply") || instruction.startsWith("divide")) return "Arithmetic Operation";
+        if (instruction.matches("^(add|subtract|multiply|divide).*")) return "Arithmetic Operation";
         return "Unknown";
     }
+
 
     private void handleAssignment(String instruction) {
         // Example: "assign x = 5"
@@ -196,9 +179,12 @@ public class SlaveCore {
         }
 
 
+
         sharedMemory.write(variable, newValue);
         System.out.println("Updated " + variable + " to " + newValue);
     }
+
+
 
 
 
@@ -229,7 +215,7 @@ public class SlaveCore {
 
 
         System.out.println("Starting Process Execution...");
-        slaveCore.executeProcess(process1);
+        slaveCore.executeProcess(process1 , null);
 
 
         System.out.println("\nFinal Shared Memory State:");

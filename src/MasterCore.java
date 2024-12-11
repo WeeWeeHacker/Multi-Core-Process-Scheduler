@@ -16,15 +16,15 @@ public class MasterCore {
     public MasterCore(List<File> programFiles) throws IOException {
         // Initialize shared memory and slave cores
         this.sharedMemory = new SharedMemory();
-        this.slaveCore1 = SlaveCore.createSlaveCore(1, sharedMemory);
-        this.slaveCore2 = SlaveCore.createSlaveCore(2, sharedMemory);
+        this.slaveCore1 = new SlaveCore(1, sharedMemory);
+        this.slaveCore2 = new SlaveCore(2, sharedMemory);
         this.logger = new ExecutionLogger();
 
         // Parse programs and create processes
         List<Process> processes = parsePrograms(programFiles);
 
         // Assign processes to slave cores using a scheduler
-        this.scheduler = new Scheduler(processes);
+        this.scheduler = new Scheduler(processes, slaveCore1, slaveCore2);
     }
 
     private List<Process> parsePrograms(List<File> programFiles) throws IOException {
