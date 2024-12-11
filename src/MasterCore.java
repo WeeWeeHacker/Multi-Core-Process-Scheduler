@@ -1,4 +1,3 @@
-//!!!!!Master Core recognizes text files and initializes cores, but processess aren't assigned properly to cores!!!!!
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,21 +7,23 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MasterCore {
-    private SharedMemory sharedMemory;
-    private SlaveCore slaveCore1;
-    private SlaveCore slaveCore2;
-    private Scheduler scheduler;
-    private ExecutionLogger logger;
+    private final SharedMemory sharedMemory;
+    private final SlaveCore slaveCore1;
+    private final SlaveCore slaveCore2;
+    private final Scheduler scheduler;
+    private final ExecutionLogger logger;
 
     public MasterCore(List<File> programFiles) throws IOException {
-        //Initialize shared memory and cores
+        // Initialize shared memory and slave cores
         this.sharedMemory = new SharedMemory();
         this.slaveCore1 = SlaveCore.createSlaveCore(1, sharedMemory);
         this.slaveCore2 = SlaveCore.createSlaveCore(2, sharedMemory);
         this.logger = new ExecutionLogger();
 
-        //Parse programs and create processes
+        // Parse programs and create processes
         List<Process> processes = parsePrograms(programFiles);
+
+        // Assign processes to slave cores using a scheduler
         this.scheduler = new Scheduler(processes);
     }
 
@@ -36,31 +37,33 @@ public class MasterCore {
     }
 
     public void startExecution() {
-        //Start the scheduler to execute processes based on the selected algorithm
+        // Start the scheduler and assign processes to slave cores
         scheduler.startScheduling();
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
+        // Monitor the state of the cores and shared memory
         Runnable statusLogger = () -> {
             System.out.println("Current State of Shared Memory: " + sharedMemory.getState());
-            System.out.println("Currently executing on Slave Core 1: " + (slaveCore1.isBusy() ? "Process ID " + slaveCore1.getCoreID() : "Idle"));
-            System.out.println("Currently executing on Slave Core 2: " + (slaveCore2.isBusy() ? "Process ID " + slaveCore2.getCoreID() : "Idle"));
+            System.out.println("Slave Core 1 Status: " + (slaveCore1.isBusy() ? "Busy (Process ID " + slaveCore1.getCoreID() + ")" : "Idle"));
+            System.out.println("Slave Core 2 Status: " + (slaveCore2.isBusy() ? "Busy (Process ID " + slaveCore2.getCoreID() + ")" : "Idle"));
         };
 
-        // Schedule status logging every 2 milliseconds
+        // Schedule status updates every 2 milliseconds
         executorService.scheduleAtFixedRate(statusLogger, 0, 2, TimeUnit.MILLISECONDS);
 
-        // Wait for completion and print execution logs
+        // Finalize execution and print logs
         executorService.schedule(() -> {
             logger.printLogs();
             executorService.shutdown();
-        }, 10, TimeUnit.SECONDS); // Adjust as necessary based on process length
+        }, 10, TimeUnit.SECONDS); // Adjust time as necessary based on workload
     }
 
     public static void main(String[] args) {
         List<File> programFiles = List.of(
                 new File("src/Resources/program_1.txt"),
-                new File("src/Resources/Program_2.txt"),
-                new File("src/Resources/Program_3.txt")
+                new File("src/Resources/program_2.txt"),
+                new File("src/Resources/program_3.txt")
         );
 
         try {
