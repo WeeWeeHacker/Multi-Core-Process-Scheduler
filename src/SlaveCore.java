@@ -84,7 +84,7 @@ public class SlaveCore {
 
 
     private void handleAssignment(String instruction) {
-        // Example: "assign x = 5"
+        // Example: "assign x = 5" or "assign z = add a, b" or "assign z = add a b"
         String[] parts = instruction.split("=");
         if (parts.length != 2) {
             System.out.println("Invalid assignment instruction: " + instruction);
@@ -98,17 +98,77 @@ public class SlaveCore {
         }
 
         String variable = leftSideParts[1].trim();
-        int value;
-        try {
-            value = Integer.parseInt(parts[1].trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid number in assignment instruction: " + instruction);
-            return;
-        }
+        String rightSide = parts[1].trim();
 
-        sharedMemory.write(variable, value);
-        System.out.println("Assigned " + value + " to " + variable);
+        if (rightSide.startsWith("add") || rightSide.startsWith("subtract") ||
+                rightSide.startsWith("multiply") || rightSide.startsWith("divide")) {
+            // Handle "assign z = add a, b" or "assign z = add a b"
+            String[] operationParts = rightSide.split("\\s+", 2);
+            if (operationParts.length < 2) {
+                System.out.println("Invalid arithmetic operation in assignment: " + instruction);
+                return;
+            }
+
+            String operation = operationParts[0].trim();
+            String[] operands = operationParts[1].contains(",")
+                    ? operationParts[1].split(",")
+                    : operationParts[1].split("\\s+");
+
+            if (operands.length != 2) {
+                System.out.println("Invalid operands for arithmetic operation in assignment: " + instruction);
+                return;
+            }
+
+            String operand1 = operands[0].trim();
+            String operand2 = operands[1].trim();
+
+            Integer value1 = (Integer) sharedMemory.read(operand1);
+            Integer value2 = (Integer) sharedMemory.read(operand2);
+
+            if (value1 == null || value2 == null) {
+                System.out.println("Undefined variables in arithmetic operation: " + operand1 + ", " + operand2);
+                return;
+            }
+
+            int result;
+            switch (operation) {
+                case "add":
+                    result = value1 + value2;
+                    break;
+                case "subtract":
+                    result = value1 - value2;
+                    break;
+                case "multiply":
+                    result = value1 * value2;
+                    break;
+                case "divide":
+                    if (value2 == 0) {
+                        System.out.println("Division by zero is not allowed in instruction: " + instruction);
+                        return;
+                    }
+                    result = value1 / value2;
+                    break;
+                default:
+                    System.out.println("Unknown operation in instruction: " + instruction);
+                    return;
+            }
+
+            sharedMemory.write(variable, result);
+            System.out.println("Assigned " + result + " to " + variable + " (result of " + operation + " " + operand1 + " and " + operand2 + ")");
+        } else {
+            // Handle "assign x = 5"
+            try {
+                int value = Integer.parseInt(rightSide);
+                sharedMemory.write(variable, value);
+                System.out.println("Assigned " + value + " to " + variable);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid value in assignment instruction: " + instruction);
+            }
+        }
     }
+
+
+
 
 
     private void handlePrint(String instruction) {
@@ -190,37 +250,37 @@ public class SlaveCore {
 
 
 
-    public static void main(String[] args) {
-
-        SharedMemory sharedMemory = new SharedMemory();
-
-
-        List<String> instructions = Arrays.asList(
-                "assign x = 5",
-                "print x",
-                "add x, 10",
-                "print x",
-                "subtract x, 3",
-                "print x",
-                "divide x, 0",      // Attempt to divide x by 0
-                "multiply x, 2",
-                "print x"
-        );
-
-
-        Process process1 = Process.createProcess(1, instructions, 0, new int[]{0, 100}, 10);
-
-
-        SlaveCore slaveCore = new SlaveCore(1, sharedMemory);
-
-
-        System.out.println("Starting Process Execution...");
-        slaveCore.executeProcess(process1 , null);
-
-
-        System.out.println("\nFinal Shared Memory State:");
-        System.out.println(sharedMemory.getState());
-    }
+//    public static void main(String[] args) {
+//
+//        SharedMemory sharedMemory = new SharedMemory();
+//
+//
+//        List<String> instructions = Arrays.asList(
+//                "assign x = 5",
+//                "print x",
+//                "add x, 10",
+//                "print x",
+//                "subtract x, 3",
+//                "print x",
+//                "divide x, 0",      // Attempt to divide x by 0
+//                "multiply x, 2",
+//                "print x"
+//        );
+//
+//
+//        Process process1 = Process.createProcess(1, instructions, 0, new int[]{0, 100}, 10);
+//
+//
+//        SlaveCore slaveCore = new SlaveCore(1, sharedMemory);
+//
+//
+//        System.out.println("Starting Process Execution...");
+//        slaveCore.executeProcess(process1 , null);
+//
+//
+//        System.out.println("\nFinal Shared Memory State:");
+//        System.out.println(sharedMemory.getState());
+//    }
 
 }
 

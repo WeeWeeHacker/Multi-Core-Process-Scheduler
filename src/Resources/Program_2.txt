@@ -1,7 +1,7 @@
-assign a input
-assign b input
-assign c subtract a b
+assign a = 1
+assign b = 2
+assign c = subtract a, b
 print c
-assign c add a b
+assign c = add a, b
 print c
 

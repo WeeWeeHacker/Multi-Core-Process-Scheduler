@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,27 +38,42 @@ public class MasterCore {
     }
 
     public void startExecution() {
-        // Start the scheduler and assign processes to slave cores
         scheduler.startScheduling();
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
-        // Monitor the state of the cores and shared memory
         Runnable statusLogger = () -> {
             System.out.println("Current State of Shared Memory: " + sharedMemory.getState());
             System.out.println("Slave Core 1 Status: " + (slaveCore1.isBusy() ? "Busy (Process ID " + slaveCore1.getCoreID() + ")" : "Idle"));
             System.out.println("Slave Core 2 Status: " + (slaveCore2.isBusy() ? "Busy (Process ID " + slaveCore2.getCoreID() + ")" : "Idle"));
+            System.out.println("-----------------------------------------------------------------------------------------------------------");
+
+            // Check if all processes are completed and terminate the statusLogger
+            if (scheduler.isQueueEmpty() && !slaveCore1.isBusy() && !slaveCore2.isBusy()) {
+                System.out.println("All processes are complete. Shutting down logger...");
+                executorService.shutdown();
+            }
         };
 
-        // Schedule status updates every 2 milliseconds
         executorService.scheduleAtFixedRate(statusLogger, 0, 2, TimeUnit.MILLISECONDS);
 
-        // Finalize execution and print logs
         executorService.schedule(() -> {
-            logger.printLogs();
-            executorService.shutdown();
-        }, 10, TimeUnit.SECONDS); // Adjust time as necessary based on workload
+            if (!executorService.isShutdown()) {
+                logger.printLogs();
+                executorService.shutdown();
+            }
+        }, 10, TimeUnit.SECONDS);
+
+        try {
+            if (!executorService.awaitTermination(15, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
+
 
     public static void main(String[] args) {
         List<File> programFiles = List.of(
